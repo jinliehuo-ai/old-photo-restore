@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>老照片修复</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="offline" id="offline" hidden>网页服务已停止，修复不会继续。请在「访达」里双击「启动网页版.command」重新启动，排队和中断的照片会自动接着修复。</div>
+<header class="top">
+  <div class="brand">
+    <h1>老照片修复</h1>
+    <span class="pill" id="model-pill">模型加载中…</span>
+  </div>
+  <div class="lan" id="lan"></div>
+</header>
+
+<div class="layout">
+  <aside class="side">
+    <label class="upload" id="drop">
+      <input type="file" id="file" accept="image/*" multiple>
+      <strong>上传照片</strong>
+      <span>点这里选择，或把照片拖进来。可一次选多张，上传后自动修复。</span>
+    </label>
+    <ul class="list" id="list"></ul>
+    <p class="empty" id="empty">还没有照片。翻拍老照片时尽量正对、避开灯光直射，效果更好。</p>
+  </aside>
+
+  <main class="main" id="main" hidden>
+    <div class="bar">
+      <h2 id="title"></h2>
+      <span class="chip" id="chip"></span>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-compare" aria-selected="true">修复结果</button>
+        <button type="button" role="tab" id="tab-edit" aria-selected="false">标注调整</button>
+      </div>
+    </div>
+
+    <section id="view-compare">
+      <div class="modes" role="group" aria-label="对比方式">
+        <button type="button" data-mode="slider" aria-pressed="true">滑动对比</button>
+        <button type="button" data-mode="pair" aria-pressed="false">并排</button>
+        <button type="button" data-mode="sheet" aria-pressed="false">对比图</button>
+      </div>
+      <div class="slider-wrap" id="mode-slider">
+        <div class="cmp" id="cmp">
+          <img id="cmp-before" alt="修复前（已拉正裁边）">
+          <img id="cmp-after" class="after" alt="修复后">
+          <span class="lbl l">修复前</span><span class="lbl r">修复后</span>
+          <div class="handle"></div>
+          <input type="range" id="cmp-range" min="0" max="100" value="50" aria-label="拖动对比修复前后">
+        </div>
+        <p class="note">左右拖动竖线查看修复前后。这里的「修复前」已经按同样的四角拉正、裁边，方便逐处对比。</p>
+      </div>
+      <div class="sheet-wrap" id="mode-sheet" hidden><img id="img-sheet" alt="修复前后对比图"></div>
+      <div class="pair" id="mode-pair" hidden>
+        <figure><img id="img-before" alt="修复前"><figcaption>修复前</figcaption></figure>
+        <figure><div class="result-box" id="result-box"><img id="img-after" alt="修复后"><div class="wait" id="wait"></div></div><figcaption>修复后</figcaption></figure>
+      </div>
+      <div class="actions">
+        <a class="btn primary" id="dl-result" download>下载修复结果</a>
+        <a class="btn" id="dl-compare" download>下载对比图</a>
+        <button type="button" class="btn" id="stop" hidden>停止修复</button>
+        <button type="button" class="btn" id="go-edit">效果不满意？去标注调整</button>
+        <button type="button" class="btn danger" id="delete">删除这张</button>
+      </div>
+      <p class="note" id="info"></p>
+    </section>
+
+    <section id="view-edit" hidden>
+      <div class="editor">
+        <div class="toolbar" id="tools"></div>
+        <div class="canvas-wrap" id="canvas-wrap"><canvas id="canvas"></canvas></div>
+        <p class="hint" id="hint"></p>
+        <div class="drawing" id="drawing" hidden>
+          <button type="button" class="btn primary" id="finish">完成这一条</button>
+          <button type="button" class="btn" id="cancel">放弃</button>
+        </div>
+      </div>
+      <div class="panel">
+        <fieldset>
+          <legend>照片四角（透视校正）</legend>
+          <div class="row">
+            <button type="button" class="btn small" id="corners-auto">自动检测</button>
+            <button type="button" class="btn small" id="corners-full">手动拖四角</button>
+            <button type="button" class="btn small" id="corners-none">不校正</button>
+          </div>
+          <p class="note" id="corners-note"></p>
+        </fieldset>
+        <fieldset>
+          <legend>校正后四边再裁掉（像素）</legend>
+          <div class="trim">
+            <label>上 <input type="number" min="0" id="trim-top"></label>
+            <label>下 <input type="number" min="0" id="trim-bottom"></label>
+            <label>左 <input type="number" min="0" id="trim-left"></label>
+            <label>右 <input type="number" min="0" id="trim-right"></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>照片类型与自动处理</legend>
+          <label class="check"><input type="checkbox" id="opt-digital"> 数码照片（手机/相机直接拍的，只轻度增强）</label>
+          <label class="check"><input type="checkbox" id="opt-screen_reflection"> 屏幕上的黑白照片，有彩色倒影</label>
+          <label class="check"><input type="checkbox" id="opt-stains"> 去整张照片上的霉点、污渍</label>
+          <label class="check"><input type="checkbox" id="opt-veil"> 去条纹状朦胧反光</label>
+          <label class="check"><input type="checkbox" id="opt-auto_glare"> 自动去点状反光</label>
+          <label class="check"><input type="checkbox" id="opt-auto_scratch"> 自动去细碎划痕</label>
+        </fieldset>
+        <fieldset>
+          <legend>已标注</legend>
+          <ul class="anns" id="anns"></ul>
+          <div class="row">
+            <button type="button" class="btn small" id="undo">撤销</button>
+            <button type="button" class="btn small" id="clear">清除全部标注</button>
+          </div>
+        </fieldset>
+        <button type="button" class="btn primary wide" id="run">保存并重新修复</button>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

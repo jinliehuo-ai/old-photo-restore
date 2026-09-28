@@ -1,0 +1,37 @@
+# 白名单：默认忽略一切，只放行下面列出的代码和文档。
+# 照片、修复结果、对比图、调试图、网页版数据、每张照片的标注、日志、模型都不会被提交。
+/*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/requirements.txt
+!/download_models.py
+!/pipeline.py
+!/restore.py
+!/rectify.py
+!/enhance.py
+!/defects.py
+!/glare.py
+!/spots.py
+!/creases.py
+!/corners.example.json
+!/repairs.example.json
+!/启动网页版.command
+!/webapp/
+/webapp/*
+!/webapp/__init__.py
+!/webapp/server.py
+!/webapp/worker.py
+!/webapp/static/
+/webapp/static/*
+!/webapp/static/index.html
+!/webapp/static/app.js
+!/webapp/static/style.css
+# 即使在放行的目录里也不提交图片
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.HEIC
+__pycache__/
+.DS_Store
